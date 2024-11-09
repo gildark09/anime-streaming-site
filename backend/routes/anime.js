@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const AnimeService = require('../services/animeService');
+const animeService = require('../services/animeService');
 const {
     getTrending,
     searchAnime,
@@ -21,7 +21,7 @@ router.get('/test', (req, res) => {
 // Consumet test route
 router.get('/consumet-test', async (req, res) => {
   try {
-    const result = await AnimeService.testConsumetConnection();
+    const result = await animeService.testConsumetConnection();
     res.json({ status: 'ok', result });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -32,7 +32,7 @@ router.get('/consumet-test', async (req, res) => {
 router.get('/trending', async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
-    const data = await AnimeService.getTrending(limit);
+    const data = await animeService.getTrending(limit);
     res.json(data);
   } catch (error) {
     next(error);
@@ -56,7 +56,7 @@ router.get('/search/:query', async (req, res) => {
 router.get('/watch/:episodeId', async (req, res) => {
   try {
     const { episodeId } = req.params;
-    const sources = await animeService.getStreamingSources(episodeId);
+    const sources = await animeService.getStreamingLinks(episodeId);
     res.json(sources);
   } catch (error) {
     console.error('Streaming error:', error);
@@ -147,7 +147,7 @@ router.get('/proxy/ts', async (req, res) => {
 // Add health check endpoint
 router.get('/health', async (req, res) => {
   try {
-    const health = await AnimeService.healthCheck();
+    const health = await animeService.healthCheck();
     res.json(health);
   } catch (error) {
     res.status(500).json({ 
