@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/anime';
+const API_URL = import.meta.env.VITE_API_URL || 'https://anime-streaming-site-production.up.railway.app';
 
 export default {
   async getTrending(limit = 50) {
     try {
-      console.log('Making request to:', `${API_URL}/trending?limit=${limit}`);
-      const response = await axios.get(`${API_URL}/trending?limit=${limit}`);
+      console.log('Making request to:', `${API_URL}/api/anime/trending?limit=${limit}`);
+      const response = await axios.get(`${API_URL}/api/anime/trending?limit=${limit}`);
       console.log('Frontend service response:', {
         status: response.status,
         hasData: !!response.data,
