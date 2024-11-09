@@ -29,7 +29,15 @@ router.get('/consumet-test', async (req, res) => {
 });
 
 // Get trending anime
-router.get('/trending', getTrending);
+router.get('/trending', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const data = await AnimeService.getTrending(limit);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Search anime
 router.get('/search/:query', searchAnime);
