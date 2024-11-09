@@ -13,15 +13,26 @@ class AnimeService {
         params: { page: 1, limit }
       });
       
-      // Transform the response to match expected format
+      // Add error checking and default values
+      if (!response || !response.data) {
+        throw new Error('Invalid response from Consumet API');
+      }
+
       return {
         results: response.data.results || [],
-        hasNextPage: response.data.hasNextPage,
-        currentPage: response.data.currentPage
+        hasNextPage: response.data.hasNextPage || false,
+        currentPage: response.data.currentPage || 1,
+        totalPages: response.data.totalPages || 1
       };
     } catch (error) {
       console.error('Error fetching trending:', error);
-      throw new Error('Failed to fetch trending anime');
+      // Return empty results instead of throwing
+      return {
+        results: [],
+        hasNextPage: false,
+        currentPage: 1,
+        totalPages: 1
+      };
     }
   }
 
