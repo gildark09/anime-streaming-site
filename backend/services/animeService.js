@@ -5,49 +5,58 @@ class AnimeService {
   constructor() {
     this.cache = new NodeCache({ stdTTL: 300 });
     this.baseURL = 'https://api.consumet.org/anime/gogoanime';
+    this.fallbackURL = 'https://api.consumet.org/anime/zoro';
   }
 
   async getTrending(limit = 20) {
     try {
-      console.log('Fetching trending from:', `${this.baseURL}/top-airing`);
-      
-      const response = await axios.get(`${this.baseURL}/top-airing`, {
+      console.log('Trying gogoanime endpoint...');
+      let response = await axios.get(`${this.baseURL}/top-airing`, {
         params: { page: 1, limit }
       });
       
-      console.log('Consumet API Response:', {
+      console.log('Gogoanime Response:', {
         status: response.status,
         hasData: !!response.data,
         dataLength: response.data?.results?.length || 0
       });
 
-      // Add error checking and default values
-      if (!response?.data?.results) {
-        console.warn('No results from Consumet API');
-        // Try alternate endpoint
-        const altResponse = await axios.get(`${this.baseURL}/recent-episodes`);
-        if (altResponse?.data?.results) {
-          return {
-            results: altResponse.data.results,
-            hasNextPage: altResponse.data.hasNextPage || false,
-            currentPage: altResponse.data.currentPage || 1,
-            totalPages: altResponse.data.totalPages || 1
-          };
-        }
+      if (!response?.data?.results?.length) {
+        console.log('No results from top-airing, trying recent episodes...');
+        response = await axios.get(`${this.baseURL}/recent-episodes`);
+        console.log('Recent Episodes Response:', {
+          status: response.status,
+          hasData: !!response.data,
+          dataLength: response.data?.results?.length || 0
+        });
+      }
+
+      if (!response?.data?.results?.length) {
+        console.log('Trying fallback provider (Zoro)...');
+        response = await axios.get(`${this.fallbackURL}/top-airing`, {
+          params: { page: 1, limit }
+        });
+        console.log('Zoro Response:', {
+          status: response.status,
+          hasData: !!response.data,
+          dataLength: response.data?.results?.length || 0
+        });
       }
 
       return {
-        results: response.data.results || [],
-        hasNextPage: response.data.hasNextPage || false,
-        currentPage: response.data.currentPage || 1,
-        totalPages: response.data.totalPages || 1
+        results: response.data?.results || [],
+        hasNextPage: response.data?.hasNextPage || false,
+        currentPage: response.data?.currentPage || 1,
+        totalPages: response.data?.totalPages || 1
       };
     } catch (error) {
       console.error('Error fetching trending:', error.message);
       if (error.response) {
-        console.error('API Response:', error.response.data);
+        console.error('API Error Response:', {
+          status: error.response.status,
+          data: error.response.data
+        });
       }
-      // Return empty results instead of throwing
       return {
         results: [],
         hasNextPage: false,
