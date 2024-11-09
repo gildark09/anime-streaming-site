@@ -40,10 +40,29 @@ router.get('/trending', async (req, res, next) => {
 });
 
 // Search anime
-router.get('/search/:query', searchAnime);
+router.get('/search/:query', async (req, res) => {
+  try {
+    const { query } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const results = await animeService.searchAnime(query, page);
+    res.json(results);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search anime' });
+  }
+});
 
 // Get streaming links
-router.get('/watch/:episodeId', getStreamingLinks);
+router.get('/watch/:episodeId', async (req, res) => {
+  try {
+    const { episodeId } = req.params;
+    const sources = await animeService.getStreamingSources(episodeId);
+    res.json(sources);
+  } catch (error) {
+    console.error('Streaming error:', error);
+    res.status(500).json({ error: 'Failed to get streaming sources' });
+  }
+});
 
 // Get single anime by ID
 router.get('/:id', getAnimeById);

@@ -32,6 +32,14 @@ app.get('/test', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
+// Add health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    consumetApi: CONSUMET_API
+  });
+});
+
 // Routes
 app.use('/api/anime', require('./routes/anime'));
 
