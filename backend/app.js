@@ -6,6 +6,8 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+const CONSUMET_API = 'https://api.consumet.org';
+
 // Middleware
 app.use(cors({
   origin: '*',
