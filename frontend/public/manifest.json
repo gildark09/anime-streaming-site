@@ -1,0 +1,16 @@
+{
+  "name": "YumeStream",
+  "short_name": "YumeStream",
+  "description": "Watch your favorite anime online in HD quality",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#f472b6",
+  "icons": [
+    {
+      "src": "/yume-icon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+} 
