@@ -3,19 +3,37 @@ const NodeCache = require('node-cache');
 
 class AnimeService {
   constructor() {
-    this.cache = new NodeCache({ stdTTL: 300 }); // 5 minutes cache
+    this.cache = new NodeCache({ stdTTL: 300 });
     this.baseURL = 'https://api.consumet.org/anime/gogoanime';
   }
 
   async getTrending(limit = 20) {
     try {
+      console.log('Fetching trending from:', `${this.baseURL}/top-airing`);
+      
       const response = await axios.get(`${this.baseURL}/top-airing`, {
         params: { page: 1, limit }
       });
       
+      console.log('Consumet API Response:', {
+        status: response.status,
+        hasData: !!response.data,
+        dataLength: response.data?.results?.length || 0
+      });
+
       // Add error checking and default values
-      if (!response || !response.data) {
-        throw new Error('Invalid response from Consumet API');
+      if (!response?.data?.results) {
+        console.warn('No results from Consumet API');
+        // Try alternate endpoint
+        const altResponse = await axios.get(`${this.baseURL}/recent-episodes`);
+        if (altResponse?.data?.results) {
+          return {
+            results: altResponse.data.results,
+            hasNextPage: altResponse.data.hasNextPage || false,
+            currentPage: altResponse.data.currentPage || 1,
+            totalPages: altResponse.data.totalPages || 1
+          };
+        }
       }
 
       return {
@@ -25,7 +43,10 @@ class AnimeService {
         totalPages: response.data.totalPages || 1
       };
     } catch (error) {
-      console.error('Error fetching trending:', error);
+      console.error('Error fetching trending:', error.message);
+      if (error.response) {
+        console.error('API Response:', error.response.data);
+      }
       // Return empty results instead of throwing
       return {
         results: [],
