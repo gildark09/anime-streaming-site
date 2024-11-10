@@ -4,43 +4,47 @@ const NodeCache = require('node-cache');
 class AnimeService {
   constructor() {
     this.cache = new NodeCache({ stdTTL: 300 });
-    this.baseURL = 'https://api.consumet.org/anime/gogoanime';
-    this.fallbackURL = 'https://api.consumet.org/anime/zoro';
+    this.baseURL = 'https://api.consumet.org/meta/anilist';
   }
 
   async getTrending(limit = 20) {
     try {
-      console.log('Trying gogoanime endpoint...');
-      let response = await axios.get(`${this.baseURL}/top-airing`, {
-        params: { page: 1, limit }
-      });
+      console.log('Fetching trending from AniList...');
       
-      console.log('Gogoanime Response:', {
+      const response = await axios.get(`${this.baseURL}/trending`, {
+        params: {
+          page: 1,
+          perPage: limit,
+          provider: 'gogoanime'
+        }
+      });
+
+      console.log('AniList Response:', {
         status: response.status,
         hasData: !!response.data,
-        dataLength: response.data?.results?.length || 0
+        dataLength: response.data?.results?.length || 0,
+        firstItem: response.data?.results?.[0]
       });
 
       if (!response?.data?.results?.length) {
-        console.log('No results from top-airing, trying recent episodes...');
-        response = await axios.get(`${this.baseURL}/recent-episodes`);
-        console.log('Recent Episodes Response:', {
-          status: response.status,
-          hasData: !!response.data,
-          dataLength: response.data?.results?.length || 0
+        // Try popular as fallback
+        console.log('Trying popular anime...');
+        const popularResponse = await axios.get(`${this.baseURL}/popular`, {
+          params: {
+            page: 1,
+            perPage: limit,
+            provider: 'gogoanime'
+          }
         });
-      }
 
-      if (!response?.data?.results?.length) {
-        console.log('Trying fallback provider (Zoro)...');
-        response = await axios.get(`${this.fallbackURL}/top-airing`, {
-          params: { page: 1, limit }
-        });
-        console.log('Zoro Response:', {
-          status: response.status,
-          hasData: !!response.data,
-          dataLength: response.data?.results?.length || 0
-        });
+        if (popularResponse?.data?.results?.length) {
+          return {
+            results: popularResponse.data.results,
+            hasNextPage: popularResponse.data.hasNextPage || false,
+            currentPage: popularResponse.data.currentPage || 1,
+            totalPages: popularResponse.data.totalPages || 1
+          };
+        }
       }
 
       return {
@@ -49,12 +53,14 @@ class AnimeService {
         currentPage: response.data?.currentPage || 1,
         totalPages: response.data?.totalPages || 1
       };
+
     } catch (error) {
       console.error('Error fetching trending:', error.message);
       if (error.response) {
-        console.error('API Error Response:', {
+        console.error('API Error Details:', {
           status: error.response.status,
-          data: error.response.data
+          data: error.response.data,
+          headers: error.response.headers
         });
       }
       return {
