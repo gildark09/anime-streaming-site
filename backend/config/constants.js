@@ -1,0 +1,1 @@
+export const CONSUMET_API_URL = 'https://consumet-api-production-f6af.up.railway.app';

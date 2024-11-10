@@ -1,10 +1,14 @@
 [build]
 builder = "nixpacks"
-dockerfilePath = "./backend/Dockerfile"
+dockerfilePath = "./Dockerfile"
 
 [deploy]
 numReplicas = 1
-startCommand = "cd backend && node app.js"
-healthcheckPath = "/api/anime/test"
+startCommand = "npm start"
+healthcheckPath = "/health"
 healthcheckTimeout = 100
-restartPolicyType = "on_failure" 
+restartPolicyType = "on_failure"
+
+[deploy.envs]
+NODE_ENV = "production"
+PORT = "3000" 
